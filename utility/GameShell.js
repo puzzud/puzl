@@ -3,6 +3,8 @@ function GameShellSettings()
 {
   this.width   = 0;
   this.height  = 0;
+
+  this.pixelPerfect = true;
 }
 window['GameShellSettings'] = GameShellSettings;
 
@@ -31,6 +33,8 @@ function GameShell( gameShellSettings )
   this.game = null;
 
   this.keyboard = null;
+
+  this.fullScreen = false;
 }
 window['GameShell'] = GameShell;
 
@@ -48,7 +52,8 @@ GameShell.prototype.run = function()
   var width = this.gameShellSettings.width;
   var height = this.gameShellSettings.height;
 
-  this.game = new Phaser.Game( width, height, Phaser.AUTO, "", gameCallBacks );
+  var renderType = this.gameShellSettings.pixelPerfect ? Phaser.CANVAS : Phaser.AUTO;
+  this.game = new Phaser.Game( width, height, renderType, "", gameCallBacks );
 };
 GameShell.prototype['run'] = GameShell.prototype.run;
 
@@ -89,7 +94,43 @@ GameShell.prototype.shellLogic = function()
   }
 };
 
+GameShell.prototype.initialize = function(){};
 GameShell.prototype.logic  = function(){};
 GameShell.prototype.input  = function(){};
 GameShell.prototype.resize = function(){};
 GameShell.prototype.postInitialize = function(){};
+GameShell.prototype.shutdown = function(){};
+
+GameShell.prototype.toggleFullScreen = function()
+{
+  this.fullscreen = !this.fullscreen;
+  this.setFullScreen( this.fullscreen );
+};
+
+GameShell.prototype.setFullScreen = function( fullscreen )
+{
+  if( fullscreen )
+  {
+    // Change game dimensions to match screen.
+    //this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.RESIZE;
+
+    // Scale to user specified scale ratio.
+    //this.game.scale.setUserScale( 1.0, 1.0 );
+    //this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.USER_SCALE;
+
+    // Stretch to fill.
+    //this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT;
+
+    // Keep original size.
+    //this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.NO_SCALE;
+
+    // Maintain aspect ratio.
+    this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
+    
+    this.game.scale.startFullScreen( this.gameShellSettings.pixelPerfect );
+  }
+  else
+  {
+    this.game.scale.stopFullScreen();
+  }
+};
