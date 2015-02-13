@@ -1,3 +1,5 @@
+var PuzL = {};
+
 function extend( subConstructor, superConstructor )
 {
   var constructor =

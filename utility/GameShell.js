@@ -1,87 +1,79 @@
-/** @constructor */
-function GameShellSettings()
-{
-  this.width   = 0;
-  this.height  = 0;
-
-  this.pixelPerfect = true;
-}
-window['GameShellSettings'] = GameShellSettings;
-
 var GlobalGameShell = null;
 
 /** @constructor */
-function GameShell( gameShellSettings )
+PuzL.GameShell = function( game )
 {
   // Constructor.
   //console.log( "GameShell::constructor()" );
   GlobalGameShell = this;
-
-  if( gameShellSettings !== undefined )
-  {
-    this.gameShellSettings = gameShellSettings;
-  }
-  else
-  {
-    this.gameShellSettings = new GameShellSettings();
-  }
   
   this.initialized = false;
   
   this.quit = false;
 
-  this.game = null;
+  this.game = game;
 
   this.keyboard = null;
 
   this.fullScreen = false;
 }
-window['GameShell'] = GameShell;
+//window['GameShell'] = GameShell;
 
-GameShell.prototype.run = function()
+PuzL.GameShell.prototype.gameShellSettings =
 {
-  //console.log( "GameShell::run()" );
+  width: 0,
+  height: 0,
 
-  var gameCallBacks =
-  {
-    preload: this.shellInitialize.bind( this ),
-    create: this.shellPostInitialize.bind( this ),
-    update: this.shellLogic.bind( this )
-  };
+  pixelPerfect: true
+}
 
+PuzL.GameShell.prototype.run = function()
+{
   var width = this.gameShellSettings.width;
   var height = this.gameShellSettings.height;
 
-  var renderType = this.gameShellSettings.pixelPerfect ? Phaser.CANVAS : Phaser.AUTO;
-  this.game = new Phaser.Game( width, height, renderType, "", gameCallBacks );
-};
-GameShell.prototype['run'] = GameShell.prototype.run;
+  var renderType = ( this.gameShellSettings.pixelPerfect ) ? Phaser.CANVAS : Phaser.AUTO;
+  this.game = new Phaser.Game( width, height, renderType, "gameContainer" );
 
-GameShell.prototype.shellInitialize = function()
+  this.shellInitialize();
+};
+PuzL.GameShell.prototype['run'] = PuzL.GameShell.prototype.run;
+
+PuzL.GameShell.prototype.shellInitialize = function()
 {
-  //console.log( "GameShell::shellInitialize()" );
+  //console.log( "PuzL.GameShell::shellInitialize()" );
 
   this.pageParameters = GeneralUtil.getPageParameters();
-
-  this.keyboard = this.game.input.keyboard;
 
   this.initialize();
 };
 
-GameShell.prototype.shellPostInitialize = function()
+PuzL.GameShell.prototype.preload = function()
 {
-  //console.log( "GameShell::shellPostInitialize()" );
+  this.shellInitialize();
+};
+
+PuzL.GameShell.prototype.shellPostInitialize = function()
+{
+  //console.log( "PuzL.GameShell::shellPostInitialize()" );
+  this.keyboard = this.game.input.keyboard;
+  
   this.postInitialize();
 };
 
-GameShell.prototype.shellShutdown = function()
+PuzL.GameShell.prototype.create = function()
 {
-  //console.log( "GameShell::shellShutdown()" );
+  this.shellPostInitialize();
 };
 
-GameShell.prototype.shellLogic = function()
+PuzL.GameShell.prototype.shellShutdown = function()
 {
-  //console.log( "GameShell::shellLogic()" );
+  //console.log( "PuzL.GameShell::shellShutdown()" );
+};
+
+PuzL.GameShell.prototype.shellLogic = function()
+{
+  //console.log( "PuzL.GameShell::shellLogic()" );
   if( !this.quit )
   {
     this.input();
@@ -94,20 +86,25 @@ GameShell.prototype.shellLogic = function()
   }
 };
 
-GameShell.prototype.initialize = function(){};
-GameShell.prototype.logic  = function(){};
-GameShell.prototype.input  = function(){};
-GameShell.prototype.resize = function(){};
-GameShell.prototype.postInitialize = function(){};
-GameShell.prototype.shutdown = function(){};
+PuzL.GameShell.prototype.update = function()
+{
+  this.shellLogic();
+};
 
-GameShell.prototype.toggleFullScreen = function()
+PuzL.GameShell.prototype.initialize = function(){};
+PuzL.GameShell.prototype.logic  = function(){};
+PuzL.GameShell.prototype.input  = function(){};
+PuzL.GameShell.prototype.resize = function(){};
+PuzL.GameShell.prototype.postInitialize = function(){};
+PuzL.GameShell.prototype.shutdown = function(){};
+
+PuzL.GameShell.prototype.toggleFullScreen = function()
 {
   this.fullscreen = !this.fullscreen;
   this.setFullScreen( this.fullscreen );
 };
 
-GameShell.prototype.setFullScreen = function( fullscreen )
+PuzL.GameShell.prototype.setFullScreen = function( fullscreen )
 {
   if( fullscreen )
   {
