@@ -10,7 +10,7 @@ PuzL.GameScreen = function( gameShell, parentScreen )
   this.subScreen      = null;
   this.nextSubScreen  = null;
   this.resetSubScreen = true;
-}
+};
 
 //window['GameScreen'] = PuzL.GameScreen;
 

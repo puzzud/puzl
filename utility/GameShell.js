@@ -16,7 +16,7 @@ PuzL.GameShell = function( game )
   this.keyboard = null;
 
   this.fullScreen = false;
-}
+};
 //window['GameShell'] = GameShell;
 
 PuzL.GameShell.prototype.gameShellSettings =
@@ -46,24 +46,16 @@ PuzL.GameShell.prototype.shellInitialize = function()
   this.pageParameters = GeneralUtil.getPageParameters();
 
   this.initialize();
-};
-
-PuzL.GameShell.prototype.preload = function()
-{
-  this.shellInitialize();
+  
+  this.shellPostInitialize();
 };
 
 PuzL.GameShell.prototype.shellPostInitialize = function()
 {
   //console.log( "PuzL.GameShell::shellPostInitialize()" );
-  this.keyboard = this.game.input.keyboard;
+  //this.keyboard = this.game.input.keyboard;
   
   this.postInitialize();
-};
-
-PuzL.GameShell.prototype.create = function()
-{
-  this.shellPostInitialize();
 };
 
 PuzL.GameShell.prototype.shellShutdown = function()
@@ -71,30 +63,7 @@ PuzL.GameShell.prototype.shellShutdown = function()
   //console.log( "PuzL.GameShell::shellShutdown()" );
 };
 
-PuzL.GameShell.prototype.shellLogic = function()
-{
-  //console.log( "PuzL.GameShell::shellLogic()" );
-  if( !this.quit )
-  {
-    this.input();
-    this.logic();
-  }
-  else
-  {
-    this.shutdown();
-    this.shellShutdown();
-  }
-};
-
-PuzL.GameShell.prototype.update = function()
-{
-  this.shellLogic();
-};
-
 PuzL.GameShell.prototype.initialize = function(){};
-PuzL.GameShell.prototype.logic  = function(){};
-PuzL.GameShell.prototype.input  = function(){};
-PuzL.GameShell.prototype.resize = function(){};
 PuzL.GameShell.prototype.postInitialize = function(){};
 PuzL.GameShell.prototype.shutdown = function(){};
 
