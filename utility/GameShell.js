@@ -1,17 +1,15 @@
 var GlobalGameShell = null;
 
 /** @constructor */
-PuzL.GameShell = function( game )
+PuzL.GameShell = function()
 {
-  // Constructor.
-  //console.log( "GameShell::constructor()" );
   GlobalGameShell = this;
   
   this.initialized = false;
   
   this.quit = false;
 
-  this.game = game;
+  this.game = null;
 
   this.keyboard = null;
 
@@ -33,26 +31,23 @@ PuzL.GameShell.prototype.run = function()
   var height = this.gameShellSettings.height;
 
   var renderType = ( this.gameShellSettings.pixelPerfect ) ? Phaser.CANVAS : Phaser.AUTO;
-  this.game = new Phaser.Game( width, height, renderType, "gameContainer" );
-
+  
+  this.game = new Phaser.Game( width, height, renderType, "" );//"gameContainer" );
+  
   this.shellInitialize();
 };
 PuzL.GameShell.prototype['run'] = PuzL.GameShell.prototype.run;
 
 PuzL.GameShell.prototype.shellInitialize = function()
 {
-  //console.log( "PuzL.GameShell::shellInitialize()" );
-
   this.pageParameters = GeneralUtil.getPageParameters();
 
   this.initialize();
-  
   this.shellPostInitialize();
 };
 
 PuzL.GameShell.prototype.shellPostInitialize = function()
 {
-  //console.log( "PuzL.GameShell::shellPostInitialize()" );
   //this.keyboard = this.game.input.keyboard;
   
   this.postInitialize();
@@ -60,12 +55,28 @@ PuzL.GameShell.prototype.shellPostInitialize = function()
 
 PuzL.GameShell.prototype.shellShutdown = function()
 {
-  //console.log( "PuzL.GameShell::shellShutdown()" );
+  this.shutdown();
 };
 
 PuzL.GameShell.prototype.initialize = function(){};
 PuzL.GameShell.prototype.postInitialize = function(){};
 PuzL.GameShell.prototype.shutdown = function(){};
+
+PuzL.GameShell.prototype.addGameScreen = function( gameScreenObjectType )
+{
+  var gameScreen = this.game.state.add( gameScreenObjectType.prototype.id, gameScreenObjectType );
+  if( gameScreen !== null )
+  {
+    gameScreen.gameShell = this;
+  }
+  
+  return gameScreen;
+};
+
+PuzL.GameShell.prototype.setGameScreen = function( gameScreen )
+{
+  this.game.state.start( gameScreen.id );
+};
 
 PuzL.GameShell.prototype.toggleFullScreen = function()
 {
