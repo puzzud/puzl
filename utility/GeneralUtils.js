@@ -1,11 +1,36 @@
-//-----------------------------------------------------------
-//-----------------------------------------------------------
-CreateArray = function( size, value )
+/** @constructor */
+PuzL.GeneralUtil = function()
+{
+  
+};
+
+PuzL.GeneralUtil.prototype.getPageParameters = function()
+{
+  return this.parseQueryString( location.search.substring( 1 ) );
+};
+
+var GeneralUtil = new PuzL.GeneralUtil();
+
+window['GeneralUtil'] = GeneralUtil;
+
+PuzL.GeneralUtil.prototype.getPageParameterValue = function( pageParameters, parameterName, defaultValue )
+{
+  var parameterValue = pageParameters[parameterName];
+  if( parameterValue === undefined )
+  {
+    parameterValue = defaultValue;
+  }
+
+  //console.log( parameterValue );
+  return parameterValue;
+};
+
+PuzL.GeneralUtil.prototype.createArray = function( size, value )
 {
   if( value !== undefined )
   {
     var array = new Array( size );
-    FillArray( array, value );
+    this.fillArray( array, value );
     
     return array;
   }
@@ -13,27 +38,23 @@ CreateArray = function( size, value )
   {
     return new Array( size );
   }
-}
+};
 
-//-----------------------------------------------------------
-//-----------------------------------------------------------
-Create2dArray = function( size0, size1, value )
+PuzL.GeneralUtil.prototype.create2dArray = function( size0, size1, value )
 {
-  var array = CreateArray( size0 );
+  var array = this.createArray( size0 );
   
   var length = size0 - 1;
   do
   {
-    array[length] = CreateArray( size1, value );
+    array[length] = this.createArray( size1, value );
   }
   while( --length > -1 );
   
   return array;
-}
+};
 
-//-----------------------------------------------------------
-//-----------------------------------------------------------
-FillArray = function( array, value )
+PuzL.GeneralUtil.prototype.fillArray = function( array, value )
 {
   var length = array.length - 1;
   if( length == -1 )
@@ -48,26 +69,24 @@ FillArray = function( array, value )
     }
     while( --length > -1 );
   }
-}
+};
 
-//-----------------------------------------------------------
-//-----------------------------------------------------------
-Fill2dArray = function( array, value )
+PuzL.GeneralUtil.prototype.fill2dArray = function( array, value )
 {
   var length = array.length - 1;
 
   do
   {
-    FillArray( array[length], value );
+    this.fillArray( array[length], value );
   }
   while( --length > -1 );
-}
+};
 
 //-----------------------------------------------------------
 // Copy contents of arrayFrom to arrayTo up to the number
 // of common elements (minimum of both array lengths).
 //-----------------------------------------------------------
-CopyArray = function( arrayFrom, arrayTo )
+PuzL.GeneralUtil.prototype.copyArray = function( arrayFrom, arrayTo )
 {
   var length = Math.min( arrayFrom.length, arrayTo.length ) - 1;
   if( length == -1 )
@@ -80,11 +99,9 @@ CopyArray = function( arrayFrom, arrayTo )
     arrayTo[length] = arrayFrom[length];
   }
   while( --length > -1 );
-}
+};
 
-//-----------------------------------------------------------
-//-----------------------------------------------------------
-LimitValueToRange = function( value, low, high )
+PuzL.GeneralUtil.prototype.limitValueToRange = function( value, low, high )
 {
   if( value < low )
   {
@@ -97,7 +114,7 @@ LimitValueToRange = function( value, low, high )
   }
 
   return value;
-}
+};
 
 //-----------------------------------------------------------
 // Returns a random integer.
@@ -110,7 +127,7 @@ LimitValueToRange = function( value, low, high )
 //            it represents the highest possible integer
 //            returned.
 //-----------------------------------------------------------
-GetRandomInteger = function( bound0, bound1 )
+PuzL.GeneralUtil.prototype.getRandomInteger = function( bound0, bound1 )
 {
   if( bound1 === undefined )
   {
@@ -123,11 +140,9 @@ GetRandomInteger = function( bound0, bound1 )
     // bound1 is high.
     return ( Math.random() * ( bound1 + 1 - bound0 ) | 0 ) + bound0;
   }
-}
+};
 
-//-----------------------------------------------------------
-//-----------------------------------------------------------
-ParseQueryString = function( queryString )
+PuzL.GeneralUtil.prototype.parseQueryString = function( queryString )
 {
   var queryList = new Array();
 
@@ -148,42 +163,4 @@ ParseQueryString = function( queryString )
 
   //console.log( queryList );
   return queryList;
-}
-
-//-----------------------------------------------------------
-//-----------------------------------------------------------
-GetPageParameters = function()
-{
-  return ParseQueryString( location.search.substring( 1 ) );
-}
-
-//-----------------------------------------------------------
-//-----------------------------------------------------------
-GetPageParameterValue = function( pageParameters, parameterName, defaultValue )
-{
-  var parameterValue = pageParameters[parameterName];
-  if( parameterValue === undefined )
-  {
-    parameterValue = defaultValue;
-  }
-
-  //console.log( parameterValue );
-  return parameterValue;
-}
-
-//-----------------------------------------------------------
-GeneralUtilClass = function()
-{
-  
 };
-
-GeneralUtilClass.prototype.getPageParameters = GetPageParameters;
-GeneralUtilClass.prototype.getPageParameterValue = GetPageParameterValue;
-
-GeneralUtilClass.prototype.createArray = CreateArray;
-GeneralUtilClass.prototype.create2dArray = Create2dArray;
-GeneralUtilClass.prototype.fillArray = FillArray;
-GeneralUtilClass.prototype.fill2dArray = Fill2dArray;
-GeneralUtilClass.prototype.copyArray = CopyArray;
-
-GeneralUtil = new GeneralUtilClass();
