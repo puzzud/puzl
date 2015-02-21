@@ -22,7 +22,9 @@ PuzL.GameShell.prototype.gameShellSettings =
   width: 0,
   height: 0,
 
-  pixelPerfect: true
+  pixelPerfect: true,
+
+  pauseOnLoseFocus : true
 }
 
 PuzL.GameShell.prototype.run = function()
