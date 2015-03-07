@@ -89,7 +89,7 @@ PuzL.PlatformPathGraph.prototype.build = function()
             leftFallNode.nodeList.push( node );
 
             // Investigate a fall point vertically (to the left).
-            // TODO: Call function to go vertical.
+            this.buildDropPath( leftFallNode );
           }
         }
         else
@@ -135,7 +135,7 @@ PuzL.PlatformPathGraph.prototype.build = function()
           node = newNode;
 
           // Investigate a fall point vertically.
-          // TODO: Call function to go vertical.
+          this.buildDropPath( node );
 
           // Close off the working node path.
           node = null;
@@ -145,6 +145,57 @@ PuzL.PlatformPathGraph.prototype.build = function()
       }
     }
   }
+};
+
+PuzL.PlatformPathGraph.prototype.buildDropPath = function( rootNode )
+{
+  var x = rootNode.x;
+  var y = rootNode.y;
+
+  var height = this.tilemap.height;
+
+  var layerData = this.layerObject.data;
+
+  y++;
+  var tile = layerData[y][x];
+  if( tile.index > -1 )
+  {
+    // Root node is end of drop path.
+    return;
+  }
+
+  var node = rootNode;
+  var newNode = null;
+
+  y++;
+  while( y < height )
+  { 
+    tile = layerData[y][x];
+    if( tile.index > -1 )
+    {
+      // Build and attach new node.
+      newNode = new PuzL.PlatformPathGraphNode( x, y - 1, null );
+      this.nodeList.push( newNode );
+
+      node.nodeList.push( newNode );
+
+      node = newNode;
+
+      return;
+    }
+
+    y++;
+  }
+
+  // Bottom of tilemap was reached.
+  // Make it the end of drop path.
+  // Build and attach new node.
+  newNode = new PuzL.PlatformPathGraphNode( x, y - 1, null );
+  this.nodeList.push( newNode );
+
+  node.nodeList.push( newNode );
+
+  node = newNode;
 };
 
 /** @constructor */
