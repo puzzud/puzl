@@ -50,10 +50,7 @@ PuzL.PlatformPathGraph.prototype.build = function()
           // In which case, just use it (don't create a new one).
           
           // Create a node for the previous working node.
-          var endNode = new PuzL.PlatformPathGraphNode( x - 1, y, null );
-          this.nodeList.push( endNode );
-          
-          node.nodeList.push( endNode );
+          this.connectNewNode( node, x - 1, y, null );
 
           // Close off this walking path.
           node = null;
@@ -75,19 +72,14 @@ PuzL.PlatformPathGraph.prototype.build = function()
               ( layerData[y][x - 1].index < 0 ) )
           {
             // Create a fall point to the left.
-            leftFallNode = new PuzL.PlatformPathGraphNode( x - 1, y, null );
-            this.nodeList.push( leftFallNode );
+            leftFallNode = this.connectNewNode( null, x - 1, y, null );
           }
 
           // Create a new node (for new walkable path).
-          node = new PuzL.PlatformPathGraphNode( x, y, null );
-          this.nodeList.push( node );
+          node = this.connectNewNode( leftFallNode, x, y, null );
 
           if( leftFallNode !== null )
           {
-            // Connect the left fall node to this new walkable node.
-            leftFallNode.nodeList.push( node );
-
             // Investigate a fall point vertically (to the left).
             this.buildDropPath( leftFallNode );
           }
@@ -107,11 +99,7 @@ PuzL.PlatformPathGraph.prototype.build = function()
           if( x === width - 1 )
           {
             // Create a new node (for end of walkable path).
-            var rightmostNode = new PuzL.PlatformPathGraphNode( x, y, null );
-            this.nodeList.push( rightmostNode );
-
-            // Connect the working node to this rightmost node.
-            node.nodeList.push( rightmostNode );
+            this.connectNewNode( node, x, y, null );
 
             node = null; // NOTE: Redundant
           }
@@ -119,20 +107,10 @@ PuzL.PlatformPathGraph.prototype.build = function()
         else
         {
           // Create a node for the last walkable tile (to the left).
-          var newNode = new PuzL.PlatformPathGraphNode( x - 1, y, null );
-          this.nodeList.push( newNode );
-
-          // Connect the working node to this new node.
-          node.nodeList.push( newNode );
-          node = newNode;
+          node = this.connectNewNode( node, x - 1, y, null );
 
           // Create a new node for fall point.
-          newNode = new PuzL.PlatformPathGraphNode( x, y, null );
-          this.nodeList.push( newNode );
-
-          // Connect the working node to this node.
-          node.nodeList.push( newNode );
-          node = newNode;
+          node = this.connectNewNode( node, x, y, null );
 
           // Investigate a fall point vertically.
           this.buildDropPath( node );
@@ -145,6 +123,23 @@ PuzL.PlatformPathGraph.prototype.build = function()
       }
     }
   }
+};
+
+PuzL.PlatformPathGraph.prototype.connectNewNode = function( rootNode, x, y, type )
+{
+  var newNode = new PuzL.PlatformPathGraphNode( x, y, null );
+  this.nodeList.push( newNode );
+
+  // Connect the working root node to this new node.
+  if( rootNode !== null )
+  {
+    rootNode.nodeList.push( newNode );
+
+    // And vice versa?
+    newNode.nodeList.push( rootNode );
+  }
+
+  return newNode;
 };
 
 PuzL.PlatformPathGraph.prototype.buildDropPath = function( rootNode )
@@ -161,11 +156,8 @@ PuzL.PlatformPathGraph.prototype.buildDropPath = function( rootNode )
   if( tile.index > -1 )
   {
     // Root node is end of drop path.
-    return;
+    return rootNode;
   }
-
-  var node = rootNode;
-  var newNode = null;
 
   y++;
   while( y < height )
@@ -173,29 +165,14 @@ PuzL.PlatformPathGraph.prototype.buildDropPath = function( rootNode )
     tile = layerData[y][x];
     if( tile.index > -1 )
     {
-      // Build and attach new node.
-      newNode = new PuzL.PlatformPathGraphNode( x, y - 1, null );
-      this.nodeList.push( newNode );
-
-      node.nodeList.push( newNode );
-
-      node = newNode;
-
-      return;
+      break;
     }
 
     y++;
   }
 
-  // Bottom of tilemap was reached.
-  // Make it the end of drop path.
-  // Build and attach new node.
-  newNode = new PuzL.PlatformPathGraphNode( x, y - 1, null );
-  this.nodeList.push( newNode );
-
-  node.nodeList.push( newNode );
-
-  node = newNode;
+  // Make end of drop path.
+  return this.connectNewNode( rootNode, x, y - 1, null );
 };
 
 /** @constructor */
