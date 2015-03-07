@@ -1,6 +1,33 @@
 /** @constructor */
+PuzL.PlatformPathGraphNode = function( x, y, type, tile )
+{
+  this.x = x;
+  this.y = y;
+
+  // TODO: Get tile width / height from tilemap.
+  this.sx = x * 32;
+  this.sy = y * 32;
+
+  this.type = ( type === null ) ? this.TYPE_NONE : type;
+
+  if( tile !== null )
+  {
+    tile.properties.pathode = type;
+  }
+  
+  this.nodeList = [];
+};
+
+PuzL.PlatformPathGraphNode.prototype.TYPE_NONE = 0;
+PuzL.PlatformPathGraphNode.prototype.TYPE_WALK = 1;
+PuzL.PlatformPathGraphNode.prototype.TYPE_DROP = 2;
+PuzL.PlatformPathGraphNode.prototype.TYPE_LAND = 3;
+
+/** @constructor */
 PuzL.PlatformPathGraph = function( tilemapLayer )
 {
+  PuzL.PlatformPathGraphNode.call( this, 0, 0, this.TYPE_NONE, null );
+
   this.tilemapLayer = tilemapLayer;
   this.layerObject = this.tilemapLayer.layer;
 
@@ -14,6 +41,7 @@ PuzL.PlatformPathGraph = function( tilemapLayer )
 
   this.build();
 };
+extend( PuzL.PlatformPathGraph, PuzL.PlatformPathGraphNode );
 
 PuzL.PlatformPathGraph.prototype.build = function()
 {
@@ -46,11 +74,17 @@ PuzL.PlatformPathGraph.prototype.build = function()
       {
         if( node !== null )
         {
-          // TODO: Determine if the previous tile *is* the previous working node.
-          // In which case, just use it (don't create a new one).
-          
-          // Create a node for the previous working node.
-          this.connectNewNode( node, x - 1, y, null );
+          // Determine if the previous tile *is* the previous working node.
+          if( tile.properties.pathNode !== undefined )
+          {
+            // In which case, just use it (don't create a new one).
+            node = tile.properties.pathNode;
+          }
+          else
+          {
+            // Create a node for the previous working node.
+            node = this.connect( node, x - 1, y, this.TYPE_WALK );
+          }
 
           // Close off this walking path.
           node = null;
@@ -72,11 +106,11 @@ PuzL.PlatformPathGraph.prototype.build = function()
               ( layerData[y][x - 1].index < 0 ) )
           {
             // Create a fall point to the left.
-            leftFallNode = this.connectNewNode( null, x - 1, y, null );
+            leftFallNode = this.connect( null, x - 1, y, this.TYPE_DROP );
           }
 
           // Create a new node (for new walkable path).
-          node = this.connectNewNode( leftFallNode, x, y, null );
+          node = this.connect( leftFallNode, x, y, this.TYPE_WALK );
 
           if( leftFallNode !== null )
           {
@@ -99,7 +133,7 @@ PuzL.PlatformPathGraph.prototype.build = function()
           if( x === width - 1 )
           {
             // Create a new node (for end of walkable path).
-            this.connectNewNode( node, x, y, null );
+            this.connect( node, x, y, this.TYPE_WALK );
 
             node = null; // NOTE: Redundant
           }
@@ -107,10 +141,10 @@ PuzL.PlatformPathGraph.prototype.build = function()
         else
         {
           // Create a node for the last walkable tile (to the left).
-          node = this.connectNewNode( node, x - 1, y, null );
+          node = this.connect( node, x - 1, y, this.TYPE_WALK );
 
           // Create a new node for fall point.
-          node = this.connectNewNode( node, x, y, null );
+          node = this.connect( node, x, y, this.TYPE_DROP );
 
           // Investigate a fall point vertically.
           this.buildDropPath( node );
@@ -125,9 +159,19 @@ PuzL.PlatformPathGraph.prototype.build = function()
   }
 };
 
-PuzL.PlatformPathGraph.prototype.connectNewNode = function( rootNode, x, y, type )
+PuzL.PlatformPathGraph.prototype.connect = function( rootNode, x, y, type )
 {
-  var newNode = new PuzL.PlatformPathGraphNode( x, y, null );
+  var layerData = this.layerObject.data;
+  var tile = layerData[y][x];
+
+  var tileProperties = tile.properties;
+  if( tileProperties.pathNode !== undefined )
+  {
+    // Tile is already associated with a path node.
+    return tileProperties.pathNode;
+  }
+
+  var newNode = new PuzL.PlatformPathGraphNode( x, y, type, tile );
   this.nodeList.push( newNode );
 
   // Connect the working root node to this new node.
@@ -143,7 +187,7 @@ PuzL.PlatformPathGraph.prototype.connectNewNode = function( rootNode, x, y, type
 };
 
 PuzL.PlatformPathGraph.prototype.buildDropPath = function( rootNode )
-{
+{ 
   var x = rootNode.x;
   var y = rootNode.y;
 
@@ -159,8 +203,9 @@ PuzL.PlatformPathGraph.prototype.buildDropPath = function( rootNode )
     return rootNode;
   }
 
-  y++;
-  while( y < height )
+  var node = rootNode;
+
+  while( ++y < height )
   { 
     tile = layerData[y][x];
     if( tile.index > -1 )
@@ -168,28 +213,22 @@ PuzL.PlatformPathGraph.prototype.buildDropPath = function( rootNode )
       break;
     }
 
-    y++;
+    // Check left and right (this may be a future drop point).
+    tile = layerData[y][x - 1];
+    if( tile.index > -1 )
+    {
+      node = this.connect( node, x, y - 1, this.TYPE_DROP );
+      continue;
+    }
+
+    tile = layerData[y][x + 1];
+    if( tile.index > -1 )
+    {
+      node = this.connect( node, x, y - 1, this.TYPE_DROP );
+      continue;
+    }
   }
 
   // Make end of drop path.
-  return this.connectNewNode( rootNode, x, y - 1, null );
+  return this.connect( node, x, y - 1, this.TYPE_LAND );
 };
-
-/** @constructor */
-PuzL.PlatformPathGraphNode = function( x, y, type )
-{
-  this.x = x;
-  this.y = y;
-
-  this.type = this.TYPE_NONE;
-  if( type !== null )
-  {
-    this.type = type;
-  }
-
-  this.nodeList = [];
-};
-
-PuzL.PlatformPathGraphNode.prototype.TYPE_NONE = 0;
-PuzL.PlatformPathGraphNode.prototype.TYPE_DROP = 1;
-PuzL.PlatformPathGraphNode.prototype.TYPE_LAND = 2;
