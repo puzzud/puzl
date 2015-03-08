@@ -12,10 +12,46 @@ PuzL.PlatformPathGraphNode = function( x, y, type, tile )
 
   if( tile !== null )
   {
-    tile.properties.pathode = type;
+    tile.properties.pathNode = this;
   }
+
+  this.routeCost = -1;
+  this.estimatedCost = -1;
+  this.prevNode = null;
+  this.resetNodePathValues();
   
   this.nodeList = [];
+  this.weightList = [];
+};
+
+PuzL.PlatformPathGraphNode.prototype.distance = function( node1, node0 )
+{
+  if( node0 === undefined )
+  {
+    node0 = this;
+  }
+
+  // Manhattan method.
+  return Math.abs( node1.x - node0.x ) + Math.abs( node1.y - node0.y );  
+};
+
+PuzL.PlatformPathGraphNode.prototype.connect = function( node )
+{
+  var distance = this.distance( node );
+
+  this.nodeList.push( node );
+  this.weightList.push( distance );
+
+  // And vice versa?
+  node.nodeList.push( this );
+  node.weightList.push( distance );
+};
+
+PuzL.PlatformPathGraphNode.prototype.resetNodePathValues = function()
+{
+  this.routeCost = Number.MAX_SAFE_INTEGER;
+  this.estimatedCost = Number.MAX_SAFE_INTEGER;
+  this.prevNode = null;
 };
 
 PuzL.PlatformPathGraphNode.prototype.TYPE_NONE = 0;
@@ -35,10 +71,6 @@ PuzL.PlatformPathGraph = function( tilemapLayer )
   
   this.layerIndex = this.tilemap.getLayerIndex( this.layerObject.name );
 
-  //this.tileSet = this.tilemap.tilesets[0];
-
-  this.nodeList = [];
-
   this.build();
 };
 extend( PuzL.PlatformPathGraph, PuzL.PlatformPathGraphNode );
@@ -52,6 +84,7 @@ PuzL.PlatformPathGraph.prototype.build = function()
   var node = null;
 
   var tile = null;
+  var tilePathNode = null;
   var walkable = false;
 
   var width  = this.tilemap.width;
@@ -91,6 +124,18 @@ PuzL.PlatformPathGraph.prototype.build = function()
         }
 
         continue;
+      }
+
+      tilePathNode = tile.properties.pathNode;
+      if( tilePathNode !== undefined )
+      {
+        // Connect and use this existing node.
+        if( node !== null )
+        {
+          node.connect( tilePathNode );
+        }
+
+        node = tilePathNode;
       }
 
       // Check to see if this tile has a walkable tile below it.
@@ -177,10 +222,7 @@ PuzL.PlatformPathGraph.prototype.connect = function( rootNode, x, y, type )
   // Connect the working root node to this new node.
   if( rootNode !== null )
   {
-    rootNode.nodeList.push( newNode );
-
-    // And vice versa?
-    newNode.nodeList.push( rootNode );
+    rootNode.connect( newNode );
   }
 
   return newNode;
