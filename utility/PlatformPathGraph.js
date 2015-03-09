@@ -15,6 +15,8 @@ PuzL.PlatformPathGraphNode = function( x, y, type, tile )
     tile.properties.pathNode = this;
   }
 
+  this.tile = tile;
+
   this.routeCost = -1;
   this.estimatedCost = -1;
   this.prevNode = null;
