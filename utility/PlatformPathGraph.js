@@ -94,16 +94,16 @@ PuzL.PlatformPathGraph.prototype.build = function()
 
   for( var y = 0; y < height; y++ )
   {
+    if( y + 1 === height )
+    {
+      // Don't process the bottom row?
+      continue;
+    }
+    
     node = null;
 
     for( var x = 0; x < width; x++ )
     {
-      if( y + 1 === height )
-      {
-        // Don't process the bottom row?
-        continue;
-      }
-
       tile = layerData[y][x];
       if( tile.index > -1 )
       {
@@ -128,25 +128,21 @@ PuzL.PlatformPathGraph.prototype.build = function()
         continue;
       }
 
-      tilePathNode = tile.properties.pathNode;
-      if( tilePathNode !== undefined )
-      {
-        // Connect and use this existing node.
-        if( node !== null )
-        {
-          node.connect( tilePathNode );
-        }
-
-        node = tilePathNode;
-      }
-
       // Check to see if this tile has a walkable tile below it.
       walkable = ( layerData[y + 1][x].index > -1 ) ? true : false;
-
-      if( node === null )
+      if( walkable )
       {
-        if( walkable )
+        tilePathNode = tile.properties.pathNode;
+
+        if( node === null )
         {
+          if( tilePathNode !== undefined )
+          {
+            // Use this existing node and move on.
+            node = tilePathNode;
+            continue;
+          }
+
           // Determine if a fall point is to the left (tile to left must also be open).
           var leftFallNode = null;
           if( ( x > 0 ) &&
@@ -167,15 +163,16 @@ PuzL.PlatformPathGraph.prototype.build = function()
         }
         else
         {
-          continue;
-        }
-      }
-      else
-      {
-        // We have a working node path.
+          // We have a working node path.
 
-        if( walkable )
-        {
+          if( tilePathNode !== undefined )
+          {
+            // Connect and use this existing node.
+            node.connect( tilePathNode );
+            node = tilePathNode;
+            continue;
+          }
+          
           // Check if this tile is against the right edge of the map.
           if( x === width - 1 )
           {
@@ -185,12 +182,15 @@ PuzL.PlatformPathGraph.prototype.build = function()
             node = null; // NOTE: Redundant
           }
         }
-        else
+      }
+      else
+      {
+        if( node !== null )
         {
           // Create a node for the last walkable tile (to the left).
           node = this.connect( node, x - 1, y, this.TYPE_WALK );
 
-          // Create a new node for fall point.
+          // Create a new node for drop point.
           node = this.connect( node, x, y, this.TYPE_DROP );
 
           // Investigate a fall point vertically.
@@ -199,11 +199,11 @@ PuzL.PlatformPathGraph.prototype.build = function()
           // Close off the working node path.
           node = null;
         }
-
-        //
       }
     }
   }
+
+  console.log( this );
 };
 
 PuzL.PlatformPathGraph.prototype.connect = function( rootNode, x, y, type )
@@ -211,23 +211,27 @@ PuzL.PlatformPathGraph.prototype.connect = function( rootNode, x, y, type )
   var layerData = this.layerObject.data;
   var tile = layerData[y][x];
 
+  var node = null;
+
   var tileProperties = tile.properties;
   if( tileProperties.pathNode !== undefined )
   {
     // Tile is already associated with a path node.
-    return tileProperties.pathNode;
+    node = tileProperties.pathNode;
   }
-
-  var newNode = new PuzL.PlatformPathGraphNode( x, y, type, tile );
-  this.nodeList.push( newNode );
+  else
+  {
+    node = new PuzL.PlatformPathGraphNode( x, y, type, tile );
+    this.nodeList.push( node );
+  }
 
   // Connect the working root node to this new node.
   if( rootNode !== null )
   {
-    rootNode.connect( newNode );
+    rootNode.connect( node );
   }
 
-  return newNode;
+  return node;
 };
 
 PuzL.PlatformPathGraph.prototype.buildDropPath = function( rootNode )
@@ -255,6 +259,12 @@ PuzL.PlatformPathGraph.prototype.buildDropPath = function( rootNode )
     if( tile.index > -1 )
     {
       break;
+    }
+
+    if( tile.properties.pathNode !== undefined )
+    {
+      // Return null for now. Perhaps it should return the previously / eventual created land point?
+      return null;
     }
 
     // Check left and right (this may be a future drop point).
