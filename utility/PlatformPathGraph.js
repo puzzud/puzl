@@ -304,7 +304,8 @@ PuzL.PlatformPathGraph.prototype.getClosestTileNodeHorizontal = function( tile, 
 
   if( direction < 0 )
   {
-    endX = ( distance === undefined ) ? 0 : x - distance;
+    x--;
+    endX = ( distance === undefined ) ? 0 : x - distance + 1;
 
     do
     {
@@ -324,9 +325,10 @@ PuzL.PlatformPathGraph.prototype.getClosestTileNodeHorizontal = function( tile, 
     while( tile !== undefined );
   }
   else
-  if( direction > 0 )
+  //if( direction > 0 )
   {
-    endX = ( distance === undefined ) ? this.layerObject.width - 1 : x + distance;
+    x++;
+    endX = ( distance === undefined ) ? this.layerObject.width - 1 : x + distance - 1;
 
     do
     {
