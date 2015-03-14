@@ -129,7 +129,7 @@ PuzL.PlatformPathGraph.prototype.build = function()
       }
 
       // Check to see if this tile has a walkable tile below it.
-      walkable = ( layerData[y + 1][x].index > -1 ) ? true : false;
+      walkable = this.isTileWalkable( x, y );
       if( walkable )
       {
         tilePathNode = tile.properties.pathNode;
@@ -285,4 +285,66 @@ PuzL.PlatformPathGraph.prototype.buildDropPath = function( rootNode )
 
   // Make end of drop path.
   return this.connect( node, x, y - 1, this.TYPE_LAND );
+};
+
+PuzL.PlatformPathGraph.prototype.isTileWalkable = function( x, y )
+{
+  // Check to see if this tile has a walkable tile below it.
+  return ( this.layerObject.data[y + 1][x].index > -1 ) ? true : false;
+};
+
+PuzL.PlatformPathGraph.prototype.getClosestTileNodeHorizontal = function( tile, direction, distance )
+{
+  var closestTileNode = null;
+
+  var x = tile.x;
+  var layerDataRow = this.layerObject.data[tile.y];
+
+  var endX = 0;
+
+  if( direction < 0 )
+  {
+    endX = ( distance === undefined ) ? 0 : x - distance;
+
+    do
+    {
+      if( tile.properties.pathNode !== undefined )
+      {
+        closestTileNode = tile.properties.pathNode;
+        break;
+      }
+
+      if( --x < endX )
+      {
+        break;
+      }
+
+      tile = layerDataRow[x];
+    }
+    while( tile !== undefined );
+  }
+  else
+  if( direction > 0 )
+  {
+    endX = ( distance === undefined ) ? this.layerObject.width - 1 : x + distance;
+
+    do
+    {
+      if( tile.properties.pathNode !== undefined )
+      {
+        closestTileNode = tile.properties.pathNode;
+        break;
+      }
+
+      if( ++x > endX )
+      {
+        break;
+      }
+
+      tile = layerDataRow[x];
+    }
+    while( tile !== undefined );
+  }
+  
+  return closestTileNode;
 };
