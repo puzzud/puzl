@@ -56,6 +56,22 @@ PuzL.PlatformPathGraphNode.prototype.resetNodePathValues = function()
   this.prevNode = null;
 };
 
+
+PuzL.PlatformPathGraphNode.prototype.getAdjacentNodesByType = function( type, nodeList )
+{
+  var node = null;
+
+  var thisNodeListLength = this.nodeList.length;
+  for( var i = 0; i < thisNodeListLength; i++ )
+  {
+    node = this.nodeList[i];
+    if( node.type === type )
+    {
+      nodeList.push( node );
+    }
+  }
+};
+
 PuzL.PlatformPathGraphNode.prototype.TYPE_NONE = 0;
 PuzL.PlatformPathGraphNode.prototype.TYPE_WALK = 1;
 PuzL.PlatformPathGraphNode.prototype.TYPE_DROP = 2;
@@ -203,6 +219,8 @@ PuzL.PlatformPathGraph.prototype.build = function()
     }
   }
 
+  this.buildJumpEdges();
+
   console.log( this );
 };
 
@@ -293,6 +311,85 @@ PuzL.PlatformPathGraph.prototype.isTileWalkable = function( x, y )
   return ( this.layerObject.data[y + 1][x].index > -1 ) ? true : false;
 };
 
+PuzL.PlatformPathGraph.prototype.buildJumpEdges = function()
+{
+  var game = this.tilemapLayer.game;
+
+  var layerData = this.layerObject.data;
+
+  var node = null;
+
+  var tile = null;
+  var tilePathNode = null;
+  var walkable = false;
+
+  var width  = this.tilemap.width;
+  var height = this.tilemap.height;
+
+  for( var y = 0; y < height; y++ )
+  {
+    if( y + 1 === height )
+    {
+      // Don't process the bottom row?
+      continue;
+    }
+
+    for( var x = 0; x < width; x++ )
+    {
+      tile = layerData[y][x];
+
+      node = tile.properties.pathNode;
+      if( node !== undefined )
+      {
+        if( node.type === this.TYPE_DROP )
+        {
+          // Look for adjacent land nodes.
+          var nodeList = [];
+          node.getAdjacentNodesByType( this.TYPE_LAND, nodeList );
+          node.getAdjacentNodesByType( this.TYPE_DROP, nodeList );
+
+          for( var ni = 0; ni < nodeList.length; ni++ )
+          {
+            var adjacentNode = nodeList[ni];
+            
+            if( adjacentNode.type === this.TYPE_LAND )
+            {
+              var adjacentNodeList = [];
+              adjacentNode.getAdjacentNodesByType( this.TYPE_WALK, adjacentNodeList );
+              for( var ani = 0; ani < adjacentNodeList.length; ani++ )
+              {
+                var adjacentWalkNode = adjacentNodeList[ani];
+                if( adjacentWalkNode !== node )
+                {
+                  //adjacentWalkNode.type = this.TYPE_LAND;
+                  //node.connect( adjacentWalkNode );
+                }
+              }
+            }
+            else
+            if( adjacentNode.type === this.TYPE_DROP )
+            {
+              var adjacentNodeList = [];
+              adjacentNode.getAdjacentNodesByType( this.TYPE_WALK, adjacentNodeList );
+              for( var ani = 0; ani < adjacentNodeList.length; ani++ )
+              {
+                var adjacentWalkNode = adjacentNodeList[ani];
+                if( adjacentWalkNode !== node )
+                {
+                  //adjacentWalkNode.type = this.TYPE_LAND;
+                  //node.connect( adjacentWalkNode );
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+};
+
 PuzL.PlatformPathGraph.prototype.getClosestTileNodeHorizontal = function( tile, direction, distance )
 {
   if( direction === 0 )
@@ -348,7 +445,7 @@ PuzL.PlatformPathGraph.prototype.getClosestTileNodeHorizontal = function( tile, 
     {
       return null;
     }
-      
+
     tile = layerDataRow[x];
     do
     {
