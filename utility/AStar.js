@@ -23,10 +23,27 @@ PuzL.AStar.prototype.updateNodeValues = function( node, prevNode, routeCost, end
   node.prevNode = prevNode;
 };
 
-PuzL.AStar.prototype.findPath = function( startNode, endNode, route )
+PuzL.AStar.prototype.findPath = function( startNode, endNode, route, pathLogicHost )
 {
-  this.openList.length = 0;
-  this.closedList.length = 0;
+  // Check if resulting route array list was provided.
+  if( route === undefined )
+  {
+    route = this.route;
+  }
+
+  if( pathLogicHost === undefined )
+  {
+    pathLogicHost = null;
+  }
+  else
+  {
+    if( pathLogicHost.aStarPathLogic === undefined )
+    {
+      pathLogicHost = null;
+    }
+  }
+
+  route.length = 0;
 
   startNode.routeCost = 0;
   this.openList.push( startNode );
@@ -56,7 +73,11 @@ PuzL.AStar.prototype.findPath = function( startNode, endNode, route )
     for( var cni = 0; cni < numberOfConnectedNodes; cni++ )
     {
       var node = connectedNodeList[cni];
-      var newRouteCost = currentNode.routeCost + connectedNodeWeightList[cni];
+
+      //var weight = ( pathLogicHost !== null ) ? pathLogicHost.aStarPathLogic( currentNode, node, connectedNodeWeightList[cni] ) : connectedNodeWeightList[cni];
+      var weight = connectedNodeWeightList[cni];
+
+      var newRouteCost = currentNode.routeCost + weight;
       if( this.closedList.indexOf( node ) > -1 )
       {
         // The node is in closed list
@@ -92,13 +113,6 @@ PuzL.AStar.prototype.findPath = function( startNode, endNode, route )
     this.closedList.push( currentNode );
   }
 
-  // Check if resulting route array list was provided.
-  if( route === undefined )
-  {
-    route = this.route;
-  }
-
-  route.length = 0;
   if( routeFound )
   {
     var routeNode = endNode;
@@ -120,6 +134,9 @@ PuzL.AStar.prototype.findPath = function( startNode, endNode, route )
   {
     graphNodeList[ni].resetNodePathValues();
   }
+
+  this.openList.length = 0;
+  this.closedList.length = 0;
 
   return routeCost;
 };
