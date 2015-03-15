@@ -295,6 +295,18 @@ PuzL.PlatformPathGraph.prototype.isTileWalkable = function( x, y )
 
 PuzL.PlatformPathGraph.prototype.getClosestTileNodeHorizontal = function( tile, direction, distance )
 {
+  if( direction === 0 )
+  {
+    if( tile.properties.pathNode !== undefined )
+    {
+      return tile.properties.pathNode;
+    }
+    else
+    {
+      return null;
+    }
+  }
+
   var closestTileNode = null;
 
   var x = tile.x;
@@ -304,8 +316,8 @@ PuzL.PlatformPathGraph.prototype.getClosestTileNodeHorizontal = function( tile, 
 
   if( direction < 0 )
   {
-    x--;
-    endX = ( distance === undefined ) ? 0 : x - distance + 1;
+    tile = layerDataRow[--x];
+    endX = ( distance === undefined ) ? 0 : x - distance;
 
     do
     {
@@ -327,8 +339,8 @@ PuzL.PlatformPathGraph.prototype.getClosestTileNodeHorizontal = function( tile, 
   else
   //if( direction > 0 )
   {
-    x++;
-    endX = ( distance === undefined ) ? this.layerObject.width - 1 : x + distance - 1;
+    tile = layerDataRow[++x];
+    endX = ( distance === undefined ) ? this.layerObject.width - 1 : x + distance;
 
     do
     {
