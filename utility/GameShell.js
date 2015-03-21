@@ -24,7 +24,9 @@ PuzL.GameShell.prototype.gameShellSettings =
 
   pixelPerfect: true,
 
-  pauseOnLoseFocus : true
+  pauseOnLoseFocus: true,
+
+  enableGamepads: false
 }
 
 PuzL.GameShell.prototype.run = function()
@@ -112,4 +114,35 @@ PuzL.GameShell.prototype.setFullScreen = function( fullscreen )
   {
     this.game.scale.stopFullScreen();
   }
+};
+
+PuzL.GameShell.prototype.initializeGamepads = function()
+{
+  if( !this.gameShellSettings.enableGamepads )
+  {
+    return true;
+  }
+  
+  if( this.game.input === undefined )
+  {
+    return false;
+  }
+
+  this.game.input.gamepad.start();
+
+  if( navigator.isCocoonJS !== undefined )
+  {
+    var ouyaGamepad = this.game.plugins.add( Phaser.Plugin.CocoonJSOuyaGamepad );
+    if( ouyaGamepad === undefined )
+    {
+      return false;
+    }
+
+    this.game.input.gamepad.pad1 = ouyaGamepad.pad1;
+    this.game.input.gamepad.pad2 = ouyaGamepad.pad2;
+    this.game.input.gamepad.pad3 = ouyaGamepad.pad3;
+    this.game.input.gamepad.pad4 = ouyaGamepad.pad4;
+  }
+
+  return true;
 };
