@@ -74,8 +74,8 @@ PuzL.AStar.prototype.findPath = function( startNode, endNode, route, pathLogicHo
     {
       var node = connectedNodeList[cni];
 
-      //var weight = ( pathLogicHost !== null ) ? pathLogicHost.aStarPathLogic( currentNode, node, connectedNodeWeightList[cni] ) : connectedNodeWeightList[cni];
-      var weight = connectedNodeWeightList[cni];
+      var weight = ( pathLogicHost !== null ) ? pathLogicHost.aStarPathLogic( currentNode, node, connectedNodeWeightList[cni] ) : connectedNodeWeightList[cni];
+      //var weight = connectedNodeWeightList[cni];
 
       var newRouteCost = currentNode.routeCost + weight;
       if( this.closedList.indexOf( node ) > -1 )
