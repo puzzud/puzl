@@ -33,8 +33,26 @@ PuzL.PlatformPathGraphNode.prototype.distance = function( node1, node0 )
     node0 = this;
   }
 
-  // Manhattan method.
-  return Math.abs( node1.x - node0.x ) + Math.abs( node1.y - node0.y );  
+  return this.distanceEuclidean( node1, node0 );
+};
+
+PuzL.PlatformPathGraphNode.prototype.distanceManhattan = function( node1, node0 )
+{
+  return Math.abs( node1.x - node0.x ) + Math.abs( node1.y - node0.y );
+};
+
+PuzL.PlatformPathGraphNode.prototype.distanceEuclidean = function( node1, node0 )
+{
+  var xs = 0;
+  var ys = 0;
+ 
+  xs = node1.x - node0.x;
+  xs = xs * xs;
+ 
+  ys = node1.y - node0.y;
+  ys = ys * ys;
+ 
+  return Math.sqrt( xs + ys );
 };
 
 PuzL.PlatformPathGraphNode.prototype.connect = function( node )
@@ -88,6 +106,8 @@ PuzL.PlatformPathGraph = function( tilemapLayer )
   this.tilemap = tilemapLayer.map;
   
   this.layerIndex = this.tilemap.getLayerIndex( this.layerObject.name );
+
+  this.line = new Phaser.Line();
 
   this.build();
 };
@@ -352,35 +372,23 @@ PuzL.PlatformPathGraph.prototype.buildJumpEdges = function()
           {
             var adjacentNode = nodeList[ni];
             
-            if( adjacentNode.type === this.TYPE_LAND )
+            var adjacentNodeList = [];
+            adjacentNode.getAdjacentNodesByType( this.TYPE_WALK, adjacentNodeList );
+            adjacentNode.getAdjacentNodesByType( this.TYPE_LAND, adjacentNodeList );
+            for( var ani = 0; ani < adjacentNodeList.length; ani++ )
             {
-              var adjacentNodeList = [];
-              adjacentNode.getAdjacentNodesByType( this.TYPE_WALK, adjacentNodeList );
-              for( var ani = 0; ani < adjacentNodeList.length; ani++ )
+              var adjacentWalkNode = adjacentNodeList[ani];
+              if( adjacentWalkNode !== node )
               {
-                var adjacentWalkNode = adjacentNodeList[ani];
-                if( adjacentWalkNode !== node )
+                // TODO: Check distance.
+                if( this.doesDirectPathExist( node, adjacentWalkNode ) )
                 {
-                  //adjacentWalkNode.type = this.TYPE_LAND;
-                  //node.connect( adjacentWalkNode );
+                  adjacentWalkNode.type = this.TYPE_LAND;
+                  node.connect( adjacentWalkNode );
                 }
               }
             }
-            else
-            if( adjacentNode.type === this.TYPE_DROP )
-            {
-              var adjacentNodeList = [];
-              adjacentNode.getAdjacentNodesByType( this.TYPE_WALK, adjacentNodeList );
-              for( var ani = 0; ani < adjacentNodeList.length; ani++ )
-              {
-                var adjacentWalkNode = adjacentNodeList[ani];
-                if( adjacentWalkNode !== node )
-                {
-                  //adjacentWalkNode.type = this.TYPE_LAND;
-                  //node.connect( adjacentWalkNode );
-                }
-              }
-            }
+
           }
         }
       }
@@ -388,6 +396,83 @@ PuzL.PlatformPathGraph.prototype.buildJumpEdges = function()
   }
 
 
+};
+
+// Uses Bresenham's line algorithm.
+/*PuzL.PlatformPathGraph.prototype.doesDirectPathExist = = function( node0, node1 )
+{
+  var tile0 = node0.tile;
+  var tile1 = node1.tile;
+
+  //console.log( tile0, tile1 );
+
+  var x0 = tile0.x;
+  var y0 = tile0.y;
+  
+  var x1 = tile1.x;
+  var y1 = tile1.y;
+
+  var dx = Math.abs( x1 - x0 );
+  var dy = Math.abs( y1 - y0 );
+  var sx = ( x0 < x1 ) ? 1 : -1;
+  var sy = ( y0 < y1 ) ? 1 : -1;
+  var err = dx - dy;
+
+  var e2 = 0;
+
+  var layerData = this.layerObject.data;
+
+  var currentTile = null;
+
+  //console.log( "Evaluated: " );
+
+  while( true )
+  {
+    currentTile = layerData[y0][x0];
+    
+    //console.log( currentTile );
+
+    if( currentTile.index > -1 )
+    {
+      // Current tile is an obstacle.
+      return false;
+    }
+
+    if( ( x0 === x1 ) && ( y0 === y1 ) )
+    {
+      break;
+    }
+
+    e2 = 2 * err;
+    if( e2 >-dy )
+    {
+      err -= dy;
+      x0  += sx;
+    }
+    
+    if( e2 < dx )
+    {
+      err += dx;
+      y0  += sy;
+    }
+  }
+
+  return true;
+};*/
+
+PuzL.PlatformPathGraph.prototype.doesDirectPathExist = function( node0, node1 )
+{
+  var tile0 = node0.tile;
+  var tile1 = node1.tile;
+
+  var tileHalfWidth  = ( tile0.width  / 2 ) | 0;
+  var tileHalfHeight = ( tile0.height / 2 ) | 0;
+
+  this.line.start.set( tile0.worldX + tileHalfWidth, tile0.worldY + tileHalfHeight );
+  this.line.end.set( tile1.worldX + tileHalfWidth, tile1.worldY + tileHalfHeight );
+  
+  var tileHitList = this.tilemapLayer.getRayCastTiles( this.line, 4, true, true );
+  return ( tileHitList.length <= 0 );
 };
 
 PuzL.PlatformPathGraph.prototype.getClosestTileNodeHorizontal = function( tile, direction, distance )
