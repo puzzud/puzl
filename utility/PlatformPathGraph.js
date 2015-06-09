@@ -24,6 +24,8 @@ PuzL.PlatformPathGraphNode = function( x, y, type, tile )
   
   this.nodeList = [];
   this.weightList = [];
+
+  this.id = -1;
 };
 
 PuzL.PlatformPathGraphNode.prototype.distance = function( node1, node0 )
@@ -57,6 +59,13 @@ PuzL.PlatformPathGraphNode.prototype.distanceEuclidean = function( node1, node0 
 
 PuzL.PlatformPathGraphNode.prototype.connect = function( node )
 {
+  if( this.nodeList.indexOf( node ) > -1 )
+  {
+    // Nodes already connect.
+    // Do nothing.
+    return;
+  }
+
   var distance = this.distance( node );
 
   this.nodeList.push( node );
@@ -241,6 +250,12 @@ PuzL.PlatformPathGraph.prototype.build = function()
 
   this.buildJumpEdges();
 
+  // Assign IDs to resulting nodes.
+  for( var i = 0; i < this.nodeList.length; i++ )
+  {
+    this.nodeList[i].id = i;
+  }
+
   console.log( this );
 };
 
@@ -299,9 +314,11 @@ PuzL.PlatformPathGraph.prototype.buildDropPath = function( rootNode )
       break;
     }
 
-    if( tile.properties.pathNode !== undefined )
+    var node = tile.properties.pathNode;
+    if( node !== undefined )
     {
-      // Return null for now. Perhaps it should return the previously / eventual created land point?
+      // Just link to this node, as it already exists.
+      rootNode.connect( node );
       continue;
     }
 
@@ -309,20 +326,22 @@ PuzL.PlatformPathGraph.prototype.buildDropPath = function( rootNode )
     tile = layerData[y][x - 1];
     if( tile.index > -1 )
     {
-      node = this.connect( node, x, y - 1, this.TYPE_DROP );
+      node = this.connect( rootNode, x, y - 1, this.TYPE_DROP );
+      this.buildDropPath( node );
       continue;
     }
 
     tile = layerData[y][x + 1];
     if( tile.index > -1 )
     {
-      node = this.connect( node, x, y - 1, this.TYPE_DROP );
+      node = this.connect( rootNode, x, y - 1, this.TYPE_DROP );
+      this.buildDropPath( node );
       continue;
     }
   }
 
   // Make end of drop path.
-  return this.connect( node, x, y - 1, this.TYPE_LAND );
+  return this.connect( rootNode, x, y - 1, this.TYPE_LAND );
 };
 
 PuzL.PlatformPathGraph.prototype.isTileWalkable = function( x, y )
