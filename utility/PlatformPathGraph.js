@@ -302,7 +302,7 @@ PuzL.PlatformPathGraph.prototype.buildDropPath = function( rootNode )
     if( tile.properties.pathNode !== undefined )
     {
       // Return null for now. Perhaps it should return the previously / eventual created land point?
-      return null;
+      continue;
     }
 
     // Check left and right (this may be a future drop point).
