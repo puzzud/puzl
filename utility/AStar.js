@@ -125,8 +125,6 @@ PuzL.AStar.prototype.findPath = function( startNode, endNode, route, pathLogicHo
     route.reverse();
   }
 
-  var routeCost = route[route.length - 1].routeCost;
-
   // Cleanup, so that old values don't mess around.
   var graphNodeList = this.platformPathGraph.nodeList;
   var numberOfNodes = graphNodeList.length;
@@ -138,5 +136,11 @@ PuzL.AStar.prototype.findPath = function( startNode, endNode, route, pathLogicHo
   this.openList.length = 0;
   this.closedList.length = 0;
 
-  return routeCost;
+  // Return route cost.
+  if( route.length < 1 )
+  {
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  return route[route.length - 1].routeCost;
 };
