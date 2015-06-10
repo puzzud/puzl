@@ -400,7 +400,8 @@ PuzL.PlatformPathGraph.prototype.buildJumpEdges = function()
               if( adjacentWalkNode !== node )
               {
                 // TODO: Check distance.
-                if( this.doesDirectPathExist( node, adjacentWalkNode ) )
+                if( this.doesDirectPathExist( node, adjacentWalkNode ) &&
+                    ( node.y !== adjacentWalkNode.y ) )
                 {
                   adjacentWalkNode.type = this.TYPE_LAND;
                   node.connect( adjacentWalkNode );
