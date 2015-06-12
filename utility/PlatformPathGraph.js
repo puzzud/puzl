@@ -480,7 +480,7 @@ PuzL.PlatformPathGraph.prototype.buildJumpEdges = function()
   return true;
 };*/
 
-PuzL.PlatformPathGraph.prototype.doesDirectPathExist = function( node0, node1 )
+PuzL.PlatformPathGraph.prototype.doesDirectPathExistCentered = function( node0, node1 )
 {
   var tile0 = null;
   if( node0.tile !== undefined )
@@ -534,6 +534,167 @@ PuzL.PlatformPathGraph.prototype.doesDirectPathExist = function( node0, node1 )
   this.line.end.set( tile1.worldX + tileOffsetX, tile1.worldY + tileOffsetY );
   
   var tileHitList = this.tilemapLayer.getRayCastTiles( this.line, 4, true, true );
+  return ( tileHitList.length <= 0 );
+};
+
+PuzL.PlatformPathGraph.prototype.doesDirectPathExist = function( node0, node1 )
+{
+  var tile0 = null;
+  if( node0.tile !== undefined )
+  {
+    tile0 = node0.tile;
+  }
+  else
+  {
+    // Passed in a tile.
+    tile0 = node0;
+  }
+
+  var tile1 = null;
+  if( node1.tile !== undefined )
+  {
+    tile1 = node1.tile;
+  }
+  else
+  {
+    // Passed in a tile.
+    tile1 = node1;
+  }
+
+  var tileWidth  = tile0.width;
+  var tileHeight = tile0.height;
+
+  var tile0X = tile0.worldX;
+  var tile0Y = tile0.worldY;
+  var tile1X = tile1.worldX;
+  var tile1Y = tile1.worldY;
+
+  // Determine which point to point on the tiles to determine if a direct path exists.
+  // For diagonals, makes sure the tile diagonal extents can make it.
+  // For straights, just check from center to center.
+
+  var rayOffset0X = 0;
+  var rayOffset0Y = 0;
+
+  var rayOffset1X = 0;
+  var rayOffset1Y = 0;
+
+  if( tile1Y < tile0Y )
+  {
+    if( tile1X < tile0X )
+    {
+      // AL.
+      rayOffset0X = tileWidth;
+      rayOffset0Y = 0;
+      
+      rayOffset1X = 0;
+      rayOffset1Y = tileHeight;
+    }
+    else
+    if( tile1X > tile0X )
+    {
+      // AR.
+      rayOffset0X = 0;
+      rayOffset0Y = 0;
+      
+      rayOffset1X = tileWidth;
+      rayOffset1Y = tileHeight;
+    }
+    else
+    {
+      // A.
+      /*
+      rayOffset0X = 0;
+      rayOffset0Y = 0;
+      
+      rayOffset1X = tileWidth;
+      rayOffset1Y = 0;
+      */
+      return this.doesDirectPathExistCentered( node0, node1 );
+    }
+  }
+  else
+  if( tile1Y > tile0Y )
+  {
+    if( tile1X < tile0X )
+    {
+      // BL.
+      rayOffset0X = 0;
+      rayOffset0Y = 0;
+      
+      rayOffset1X = tileWidth;
+      rayOffset1Y = tileHeight;
+    }
+    else
+    if( tile1X > tile0X )
+    {
+      // BR.
+      rayOffset0X = tileWidth;
+      rayOffset0Y = 0;
+      
+      rayOffset1X = 0;
+      rayOffset1Y = tileHeight;
+    }
+    else
+    {
+      // B.
+      /*
+      rayOffset0X = 0;
+      rayOffset0Y = tileHeight;
+      
+      rayOffset1X = tileWidth;
+      rayOffset1Y = tileHeight;
+      */
+      return this.doesDirectPathExistCentered( node0, node1 );
+    }
+  }
+  else
+  {
+    if( tile1X < tile0X )
+    {
+      // L.
+      /*
+      rayOffset0X = 0;
+      rayOffset0Y = 0;
+      
+      rayOffset1X = 0;
+      rayOffset1Y = tileHeight;
+      */
+      return this.doesDirectPathExistCentered( node0, node1 );
+    }
+    else
+    if( tile1X > tile0X )
+    {
+      // R.
+      /*
+      rayOffset0X = tileWidth;
+      rayOffset0Y = 0;
+      
+      rayOffset1X = tileWidth;
+      rayOffset1Y = tileHeight;
+      */
+      return this.doesDirectPathExistCentered( node0, node1 );
+    }
+    else
+    {
+      // C.
+      return true;
+    }
+  }
+
+  // Ray 0.
+  this.line.start.set( tile0X + rayOffset0X, tile0Y + rayOffset0Y );
+  this.line.end.set( tile1X + rayOffset0X, tile1Y + rayOffset0Y );
+  var tileHitList = this.tilemapLayer.getRayCastTiles( this.line, 4, true, true );
+  if( tileHitList.length > 0 )
+  {
+    return false;
+  }
+
+  // Ray 1.
+  this.line.start.set( tile0X + rayOffset1X, tile0Y + rayOffset1Y );
+  this.line.end.set( tile1X + rayOffset1X, tile1Y + rayOffset1Y );
+  tileHitList = this.tilemapLayer.getRayCastTiles( this.line, 4, true, true );
   return ( tileHitList.length <= 0 );
 };
 
