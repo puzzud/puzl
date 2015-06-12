@@ -482,14 +482,56 @@ PuzL.PlatformPathGraph.prototype.buildJumpEdges = function()
 
 PuzL.PlatformPathGraph.prototype.doesDirectPathExist = function( node0, node1 )
 {
-  var tile0 = node0.tile;
-  var tile1 = node1.tile;
+  var tile0 = null;
+  if( node0.tile !== undefined )
+  {
+    tile0 = node0.tile;
+  }
+  else
+  {
+    // Passed in a tile.
+    tile0 = node0;
+  }
 
-  var tileHalfWidth  = ( tile0.width  / 2 ) | 0;
-  var tileHalfHeight = ( tile0.height / 2 ) | 0;
+  var tile1 = null;
+  if( node1.tile !== undefined )
+  {
+    tile1 = node1.tile;
+  }
+  else
+  {
+    // Passed in a tile.
+    tile1 = node1;
+  }
 
-  this.line.start.set( tile0.worldX + tileHalfWidth, tile0.worldY + tileHalfHeight );
-  this.line.end.set( tile1.worldX + tileHalfWidth, tile1.worldY + tileHalfHeight );
+  var tileOffsetX = 0;
+  var tileOffsetY = 0;
+
+  // Determine which point to point on the tile to determine direct path.
+  // Lean towards the direction. For instance, if tile1 is to the right of tile0,
+  // make tileOffsetX the right side (or full width of the tile).
+  if( tile1.worldX > tile0.worldX )
+  {
+    tileOffsetX = tile0.width;
+  }
+  else
+  if( tile1.worldX === tile0.worldX )
+  {
+    tileOffsetX = ( tile0.width / 2 ) | 0;
+  }
+
+  if( tile1.worldY > tile0.worldY )
+  {
+    tileOffsetY = tile0.height;
+  }
+  else
+  if( tile1.worldY === tile0.worldY )
+  {
+    tileOffsetY = ( tile0.height / 2 ) | 0;
+  }
+
+  this.line.start.set( tile0.worldX + tileOffsetX, tile0.worldY + tileOffsetY );
+  this.line.end.set( tile1.worldX + tileOffsetX, tile1.worldY + tileOffsetY );
   
   var tileHitList = this.tilemapLayer.getRayCastTiles( this.line, 4, true, true );
   return ( tileHitList.length <= 0 );
