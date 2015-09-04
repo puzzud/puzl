@@ -5,8 +5,16 @@ PuzL.PlatformPathGraphNode = function( x, y, type, tile )
   this.y = y;
 
   // TODO: Get tile width / height from tilemap.
-  this.sx = x * 32;
-  this.sy = y * 32;
+  if( tile !== null )
+  {
+    this.sx = x * tile.width;
+    this.sy = y * tile.height;
+  }
+  else
+  {
+    this.sx = x * 16;
+    this.sy = y * 16;
+  }
 
   this.type = ( type === null ) ? this.TYPE_NONE : type;
 
@@ -292,6 +300,7 @@ PuzL.PlatformPathGraph.prototype.buildDropPath = function( rootNode )
   var x = rootNode.x;
   var y = rootNode.y;
 
+  var width = this.tilemap.width;
   var height = this.tilemap.height;
 
   var layerData = this.layerObject.data;
@@ -323,20 +332,26 @@ PuzL.PlatformPathGraph.prototype.buildDropPath = function( rootNode )
     }
 
     // Check left and right (this may be a future drop point).
-    tile = layerData[y][x - 1];
-    if( tile.index > -1 )
+    if( x > 0 )
     {
-      node = this.connect( rootNode, x, y - 1, this.TYPE_DROP );
-      this.buildDropPath( node );
-      continue;
+      tile = layerData[y][x - 1];
+      if( tile.index > -1 )
+      {
+        node = this.connect( rootNode, x, y - 1, this.TYPE_DROP );
+        this.buildDropPath( node );
+        continue;
+      }
     }
 
-    tile = layerData[y][x + 1];
-    if( tile.index > -1 )
+    if( x + 1 < width )
     {
-      node = this.connect( rootNode, x, y - 1, this.TYPE_DROP );
-      this.buildDropPath( node );
-      continue;
+      tile = layerData[y][x + 1];
+      if( tile.index > -1 )
+      {
+        node = this.connect( rootNode, x, y - 1, this.TYPE_DROP );
+        this.buildDropPath( node );
+        continue;
+      }
     }
   }
 
