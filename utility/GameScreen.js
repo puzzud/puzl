@@ -16,6 +16,7 @@ PuzL.GameScreen.prototype.initialize = function()
 PuzL.GameScreen.prototype.preload = function()
 {
   this.stage.disableVisibilityChange = !this.gameShell.gameShellSettings.pauseOnLoseFocus;
+  this.stage.smoothed = !this.gameShell.gameShellSettings.pixelPerfect;
   
   this.initialize();
 };
